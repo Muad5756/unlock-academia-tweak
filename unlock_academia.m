@@ -250,7 +250,7 @@ static void addFloatingMenuButton(void) {
     CGFloat pad = 16;
     menuBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     menuBtn.frame = CGRectMake(pad, 100 + pad, sz, sz);
-    menuBtn.backgroundColor = [UIColor colorWithWhite:0.08 alpha:0.75];
+    menuBtn.backgroundColor = [UIColor colorWithRed:0.85 green:0.12 blue:0.12 alpha:0.85];
     menuBtn.layer.cornerRadius = sz / 2;
     menuBtn.clipsToBounds = YES;
     menuBtn.tintColor = UIColor.whiteColor;
