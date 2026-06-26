@@ -204,15 +204,6 @@ static void applyScreenPreventerHooks() {
     }
 }
 
-static void scanAndDisableSecureTextFields() {
-    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
-        if (![scene isKindOfClass:UIWindowScene.class]) continue;
-        for (UIWindow *win in ((UIWindowScene *)scene).windows) {
-            recursiveDisableSecure(win);
-        }
-    }
-}
-
 static void recursiveDisableSecure(UIView *view) {
     if ([view isKindOfClass:UITextField.class]) {
         [(UITextField *)view setSecureTextEntry:NO];
@@ -220,6 +211,15 @@ static void recursiveDisableSecure(UIView *view) {
     }
     for (UIView *sub in view.subviews) {
         recursiveDisableSecure(sub);
+    }
+}
+
+static void scanAndDisableSecureTextFields() {
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if (![scene isKindOfClass:UIWindowScene.class]) continue;
+        for (UIWindow *win in ((UIWindowScene *)scene).windows) {
+            recursiveDisableSecure(win);
+        }
     }
 }
 
