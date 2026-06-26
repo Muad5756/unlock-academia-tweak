@@ -111,7 +111,7 @@ static id rc_entitlementInfos_all(id self, SEL _cmd) {
         if (infoClass) {
             id info = ((id (*)(id, SEL))objc_msgSend)(infoClass, @selector(alloc));
             if (info) {
-                info = ((id (*)(id, SEL, SEL))objc_msgSend)(info, @selector(init));
+                info = ((id (*)(id, SEL))objc_msgSend)(info, @selector(init));
                 if (info) dict[@"RC_BILLING"] = info;
             }
         }
