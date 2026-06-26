@@ -70,7 +70,7 @@ static id safePlugin_hasObviousSigns(id self, SEL _cmd) { return @NO; }
 static void (*orig_handleCall)(id, SEL, id, id);
 
 static void safePlugin_handleCall(id self, SEL _cmd, id call, id result) {
-    NSString *method = [call method];
+    NSString *method = ((NSString *(*)(id, SEL))objc_msgSend)(call, @selector(method));
     if ([method containsString:@"Jail"] || [method containsString:@"jail"] ||
         [method containsString:@"jailbreak"] || [method containsString:@"Jailbreak"]) {
         void (^reply)(id) = result;
@@ -94,6 +94,8 @@ static void uitextfield_setSecureTextEntry(id self, SEL _cmd, BOOL val) {
     if (orig_setSecureTextEntry) orig_setSecureTextEntry(self, _cmd, val);
 }
 
+static void preventer_enablePreventScreenshot(id self, SEL _cmd) {}
+
 #pragma mark - Hooking Logic
 
 static void applyUIKitHooks() {
@@ -109,10 +111,13 @@ static void applyUIKitHooks() {
             method_setImplementation(setterM, (IMP)uitextfield_setSecureTextEntry);
         }
 
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wnonnull"
         [NSNotificationCenter.defaultCenter removeObserver:nil
             name:UIApplicationUserDidTakeScreenshotNotification object:nil];
         [NSNotificationCenter.defaultCenter removeObserver:nil
             name:UIScreenCapturedDidChangeNotification object:nil];
+        #pragma clang diagnostic pop
 
         NSLog(@"[unlock_academia] UIKit hooks applied");
     });
@@ -199,13 +204,11 @@ static void applyScreenPreventerHooks() {
     }
 }
 
-static void preventer_enablePreventScreenshot(id self, SEL _cmd) {}
-
 static void scanAndDisableSecureTextFields() {
     for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
         if (![scene isKindOfClass:UIWindowScene.class]) continue;
         for (UIWindow *win in ((UIWindowScene *)scene).windows) {
-            [self recursiveDisableSecure:win];
+            recursiveDisableSecure(win);
         }
     }
 }
