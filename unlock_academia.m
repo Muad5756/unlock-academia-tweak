@@ -211,6 +211,70 @@ static void applyRevenueCatHooks() {
     }
 }
 
+#pragma mark - Floating Menu
+
+static UIButton *menuBtn = nil;
+
+static void showBypassMenu(void) {
+    UIViewController *vc = UIApplication.sharedApplication.keyWindow.rootViewController;
+    if (!vc) return;
+
+    UIAlertController *sheet = [UIAlertController alertControllerWithTitle:@"⚡ unlock_academia"
+        message:@"All bypasses active" preferredStyle:UIAlertControllerStyleActionSheet];
+
+    [sheet addAction:[UIAlertAction actionWithTitle:@"Bypass Status"
+        style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        NSString *status =
+            @"✅ Screenshot protection disabled\n"
+            @"✅ Secure text entry blocked\n"
+            @"✅ Jailbreak detection bypassed\n"
+            @"✅ ScreenPreventerKit disabled\n"
+            @"✅ RevenueCat (RC_BILLING → active)\n\n"
+            @"entitlement: RC_BILLING";
+        UIAlertController *sub = [UIAlertController alertControllerWithTitle:@"Status"
+            message:status preferredStyle:UIAlertControllerStyleAlert];
+        [sub addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+        [vc presentViewController:sub animated:YES completion:nil];
+    }]];
+
+    [sheet addAction:[UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleCancel handler:nil]];
+    [vc presentViewController:sheet animated:YES completion:nil];
+}
+
+static void addFloatingMenuButton(void) {
+    if (menuBtn) return;
+    UIWindow *win = UIApplication.sharedApplication.keyWindow;
+    if (!win) return;
+
+    CGFloat sz = 48;
+    CGFloat pad = 16;
+    menuBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    menuBtn.frame = CGRectMake(pad, 100 + pad, sz, sz);
+    menuBtn.backgroundColor = [UIColor colorWithWhite:0.08 alpha:0.75];
+    menuBtn.layer.cornerRadius = sz / 2;
+    menuBtn.clipsToBounds = YES;
+    menuBtn.tintColor = UIColor.whiteColor;
+    [menuBtn setPreferredSymbolConfiguration:[UIImageSymbolConfiguration configurationWithPointSize:22]
+        forImageInState:UIControlStateNormal];
+    [menuBtn setImage:[UIImage systemImageNamed:@"bolt.fill"] forState:UIControlStateNormal];
+    menuBtn.layer.borderWidth = 1;
+    menuBtn.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.3].CGColor;
+
+    if (@available(iOS 14, *)) {
+        [menuBtn addAction:[UIAction actionWithHandler:^(__kindof UIAction *action) {
+            showBypassMenu();
+        }] forControlEvents:UIControlEventTouchUpInside];
+    }
+
+    [win addSubview:menuBtn];
+    [win bringSubviewToFront:menuBtn];
+    NSLog(@"[unlock_academia] Floating menu button added");
+}
+
+static void removeFloatingMenuButton(void) {
+    if (menuBtn) { [menuBtn removeFromSuperview]; menuBtn = nil; }
+}
+
 #pragma mark - Hooking Logic
 
 static void applyUIKitHooks() {
@@ -350,6 +414,9 @@ static void runDeferredHooks() {
     // Force-disable any secure text fields in the window hierarchy
     scanAndDisableSecureTextFields();
 
+    // Add floating menu button
+    addFloatingMenuButton();
+
     // Retry once more after 2s for late-loading plugins
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)),
                    dispatch_get_main_queue(), ^{
@@ -357,6 +424,7 @@ static void runDeferredHooks() {
         applyScreenPreventerHooks();
         applyRevenueCatHooks();
         scanAndDisableSecureTextFields();
+        if (!menuBtn) addFloatingMenuButton();
         NSLog(@"[unlock_academia] Late retry complete");
     });
 }
